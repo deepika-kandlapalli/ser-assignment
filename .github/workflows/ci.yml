@@ -8,6 +8,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
 
     steps:
     - uses: actions/checkout@v4
@@ -17,5 +21,16 @@ jobs:
       with:
         python-version: '3.10'
 
+    - name: Install package
+      run: |
+        pip install pytest
+        pip install -e .
+
     - name: Run tests
-      run: python -m unittest discover -s test -p "test_*.py" -v
+      run: python -m pytest test/ -v --tb=short --junitxml=test-results.xml
+
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: test-results.xml
